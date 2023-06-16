@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personagens de Rick and Morty</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to bottom right, #44281d, #e4a788, #f0e14a,#97ce4c,#e89ac7);
+        }
+
+        .character {
+            display: inline-block;
+            width: 30%;
+            padding: 10px;
+        }
+
+        .character img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            
+        }
+
+        .button-container button {
+            margin: 0 20px;
+            padding: 10px 20px;
+            font-family: arial;
+            font-size:14px;
+            font-weight:700;
+            text-transform: uppercase;
+            border:none;
+             padding:10px;
+            cursor: pointer;
+            display:inline-block;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+        #show-previous-button {
+           background-color: gray; 
+           color:aliceblue;
+        }
+        #show-previous-button:hover {
+            background-color: #00CED1;
+            color: black;
+        }
+        #show-next-button {
+            background-color: #20B2AA;
+            color: aliceblue;
+        }
+        #show-next-button:hover {
+        background-color: #00CED1;
+        color: black;
+        }
+        #title-page {
+            font-size: 50px;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        p {
+            font-size: 25px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title-page">Personagens de <span style="color: #20B2AA;text-shadow: 0 0 20px #97ce4c;">Rick and Morty</span></h1>
+
+    <div class="button-container">
+        <button id="show-previous-button">Anterior</button>
+        <button id="show-next-button">Próximo</button>
+    </div>
+
+    <div id="content-container">
+        <div id="characters-container"></div>
+    </div>
+
+    <script>
+        const charactersContainer = document.getElementById('characters-container');
+        const showNextButton = document.getElementById('show-next-button');
+        const showPreviousButton = document.getElementById('show-previous-button');
+        let currentPage = 1;
+       
+
+        const disablePreviousButton = () => {
+            showPreviousButton.style.cursor = 'not-allowed';
+            showPreviousButton.setAttribute('disabled', true);
+        }
+
+        const enablePreviousButton = () => {
+            showPreviousButton.style.cursor = 'initial';
+            showPreviousButton.removeAttribute('disabled');
+        }
+
+        const showCharacters = (characters) => {
+            charactersContainer.innerHTML = '';
+            characters.forEach((character) => {
+                const characterElement = document.createElement('div');
+                characterElement.classList.add('character');
+                characterElement.innerHTML = `
+                    <p>Nome: ${character.name}</p>
+                    <p>Espécie: ${character.species}</p>
+                    <img src="${character.image}" alt="${character.name}" class="centered-image" />
+                `;
+                charactersContainer.appendChild(characterElement);
+            });
+        }
+
+        const loadCharacters = (page) => {
+            charactersContainer.innerHTML =  'Carregando ...'
+
+            if (page === 1) {
+                disablePreviousButton();
+            } else {
+                enablePreviousButton();
+            }
+
+            fetch(
+                `https://rickandmortyapi.com/api/character/?page=${page}`
+            ).then((response) => {
+                response.json().then(data => {
+                    const characters = data.results;
+                    showCharacters(characters);
+                });
+            });
+        }
+
+        const getTotalPages = () => {
+            return fetch('https://rickandmortyapi.com/api/character/')
+                .then(response => response.json())
+                .then(data => data.info.pages);
+        };
+
+        const navigateToNextPage = () => {
+            getTotalPages().then(totalPages => {
+                currentPage++;
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+                loadCharacters(currentPage);
+            });
+        };
+
+        const navigateToPreviousPage = () => {
+            currentPage--;
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+            loadCharacters(currentPage);
+        };
+
+        showNextButton.addEventListener('click', navigateToNextPage);
+        showPreviousButton.addEventListener('click', navigateToPreviousPage);
+
+        loadCharacters(currentPage);
+    </script>
+</body>
+</html>
+        
